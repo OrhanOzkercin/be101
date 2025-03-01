@@ -4,41 +4,44 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/orhanozkercin/goblog/blog"
+	"github.com/orhanozkercin/goblog/posts"
 )
 
 func main() {
-	// api/v1/post-titles?limit=asfsaf GET -> get all post titles
-	http.HandleFunc("GET /api/v1/post-titles", func(w http.ResponseWriter, r *http.Request) {
-		var limit blog.LimitType
-		limitStr := r.URL.Query().Get("limit")
-
-		if limitStr == "" {
-			limit.HasValue = false
-		} else {
-			limitInt, err := strconv.Atoi(limitStr)
-			if err != nil {
-				http.Error(w, "Invalid limit", http.StatusBadRequest)
-				return
-			}
-			limit.HasValue = true
-			limit.Value = limitInt
-		}
-
-		titles := blog.GetBlogTitles(limit)
-		err := json.NewEncoder(w).Encode(titles)
+	http.HandleFunc("POST /posts", func(w http.ResponseWriter, r *http.Request) {
+		// parse request body
+		var post posts.CreatePostRequestPayload
+		err := json.NewDecoder(r.Body).Decode(&post)
 
 		if err != nil {
-			http.Error(w, "Failed to encode titles", http.StatusInternalServerError)
+			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
+		// create post
+		err = posts.CreatePost(post)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
+		// return post
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(post)
 	})
+	http.HandleFunc("GET /posts", func(w http.ResponseWriter, r *http.Request) {
+		// get all posts
+		posts, err := posts.GetAllPosts()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
+		// return posts
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(posts)
+	})
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Printf("Error starting server: %v\n", err)
 	}

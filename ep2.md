@@ -3,8 +3,8 @@
 ## **Temel Alanlar (Minimum Gereksinimler)**
 
 1. **ID** → (UUID veya integer) → Blog yazısının benzersiz kimliği
-2. **Title** → (string) → Blog başlığı
-3. **Content** → (text) → Blog içeriği
+2. **Title** → (string max 255 karakter) → Blog başlığı
+3. **Content** → (text max 10000 karakter) → Blog içeriği
 4. **AuthorID** → (integer/UUID) → Yazıyı oluşturan kullanıcının kimliği
 5. **CreatedAt** → (timestamp) → Oluşturulma tarihi
 6. **UpdatedAt** → (timestamp) → Son güncellenme tarihi
